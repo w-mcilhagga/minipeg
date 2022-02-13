@@ -17,7 +17,7 @@ def makepower(state, backtrack=False):
         state.group('power', -1)
     return state
 
-g = Grammar('expr')
+g = Grammar()
 g.expr = g.term & (g.add_op & g.term)*0
 g.add_op = Match('+') | '-'
 g.term = g.factor & (g.mul_op & g.factor)*0

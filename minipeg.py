@@ -390,15 +390,18 @@ class Require(Parser):
 class Grammar(Parser):
     # something to make forward references & naming easy
     def __init__(self, p=None):
-        self.__dict__['parsername'] = p
+        self.__dict__['parsername'] = None
+        
     
     def __getattr__(self, attr):
         # create a forward reference to the rule
+        print('get  ', attr)
         object.__setattr__(self, attr, Ref())
         return getattr(self, attr)
     
     def __setattr__(self, attr, value):
         # create or fill in an attribute
+        print('set', attr)
         if attr in self.__dict__:
             g = getattr(self, attr)
             if type(g) is Ref:
@@ -407,6 +410,8 @@ class Grammar(Parser):
                 return
         self.__dict__[attr] = value
         value/attr
+        if self.parsername is None:
+            self.__dict__['parsername'] = attr
         
     def __call__(self, state, backtrack=False):
         return getattr(self, self.parsername)(state, backtrack)

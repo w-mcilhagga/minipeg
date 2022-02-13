@@ -1,5 +1,5 @@
 # minipeg
-A simple tool for creating [peg parsers](https://en.wikipedia.org/wiki/Parsing_expression_grammar) in python from expressions that look a lot like [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) .
+A minimal tool for creating [peg parsers](https://en.wikipedia.org/wiki/Parsing_expression_grammar) in python from expressions that look a lot like [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) .
 
 ## Example
 
@@ -39,7 +39,7 @@ The equivalents between EBNF and `minipeg` are:
 
 * concatenation:
   - EBNF:   `A B C`
-  - minipeg:  `A&B&C`
+  - minipeg:  `A & B & C`
 * alternation:
   - EBNF: `A|B|C`
   - minipeg: `A|B|C`
@@ -47,13 +47,13 @@ The equivalents between EBNF and `minipeg` are:
   - EBNF: `[A]`
   - minipeg: `~A`
 * repetition:
-  - EBNF: `{A}`
+  - EBNF: `{A}` to repeat zero or more times
   - minipeg: `A*0` to repeat at least zero times, `A*n` to repeat at least n times
 * terminal string:
   - EBNF: `"..."` or `'...'`
-  - minipeg: `Match('...')` or `MatchRe('...')` where the string is a regular expression pattern
+  - minipeg: `Match('...')` or `MatchRe('...')` if the string is a regular expression pattern
 
-Note that in the example above, strings are sometimes inside `Match` calls and sometimes not. When a builtin type is combined with a Parser object, the Parser operator overrides will convert the builtin to a Parser of (usually) the appropriate type.
+Note that in the example, strings are sometimes inside `Match` calls and sometimes not. When a builtin type is combined with a Parser object, the Parser operator overrides will convert the builtin to a Parser of (usually) the appropriate type. However, this won't work with strings. Thus `'+'|'-'` will yield an error, but `Match('+')|'-'` creates a parser object `Match('+')` which applies a conversion to the `'-'` string when its `__or__` method is called.
 
 `minipeg` expressions of course follow python's operator precendence rules.
 
@@ -66,9 +66,11 @@ from minipeg import TextState
 state = g(TextState('  (1+345^2) / 3*7-4'))
 ```
 
+The grammar object `g` will use the first defined rule `g.expr` by default when parsing.
+
 If the parse succeeds, the resultant state object has an `ast` attribute which is a list containing the parse tree as its first element. If the parse fails, the return value is either `False`, or an exception is thrown ( when error parsers have been defined).
 
-The ast can be inspected by calling `state.ast[0].dump()`. In this case, the output is
+The ast can be inspected by calling `state.ast[0].dump()`. In this case, the dump looks like this:
 
 ```
 expr:
@@ -84,11 +86,10 @@ expr:
                         literal: "+"
                     term:
                         factor:
-                            power:
-                                number: "345"
-                                literal: "^"
-                                factor:
-                                    number: "2"
+                            number: "345"
+                            literal: "^"
+                            factor:
+                                number: "2"
                 literal: ")"
         mul_op:
             literal: "/"
