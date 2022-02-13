@@ -53,12 +53,12 @@ The equivalents between EBNF and `minipeg` are:
   - EBNF: `"..."` or `'...'`
   - minipeg: `Match('...')` or `MatchRe('...')` if the string is a regular expression pattern
 
-Note that in the example, strings are sometimes inside `Match` calls and sometimes not. When a builtin type is combined with a Parser object, the Parser operator overrides will convert the builtin to a Parser of (usually) the appropriate type. However, this won't work with strings. Thus `'+'|'-'` will yield an error, but `Match('+')|'-'` creates a parser object `Match('+')` which applies a conversion to the `'-'` string when its `__or__` method is called.
+Note that in the example, strings are sometimes inside `Match` calls and sometimes not. When a builtin type is combined with a Parser object, the Parser operator overrides will convert the builtin type to a Parser of (usually) the appropriate kind. However, this won't work with strings. Thus `'+'|'-'` will yield an error, but `Match('+')|'-'` creates a parser object `Match('+')` which applies a conversion to the `'-'` string when its `__or__` method is called.
 
 `minipeg` expressions of course follow python's operator precendence rules.
 
 ## Running the Parser.
-Once the parser has been defined, it can be run on a string input as follows:
+Once the grammar `g` has been defined, it can be run on a string input as follows:
 
 ```python
 from minipeg import TextState
@@ -66,7 +66,7 @@ from minipeg import TextState
 state = g(TextState('  (1+345^2) / 3*7-4'))
 ```
 
-The grammar object `g` will use the first defined rule `g.expr` by default when parsing.
+A `TextState` object takes a string input, keeps track of the state of the parse, and stores the ast. The grammar object `g` will use the first defined rule `g.expr` by default when parsing, but you can explicitly call any other rule on a state object. 
 
 If the parse succeeds, the resultant state object has an `ast` attribute which is a list containing the parse tree as its first element. If the parse fails, the return value is either `False`, or an exception is thrown ( when error parsers have been defined).
 
