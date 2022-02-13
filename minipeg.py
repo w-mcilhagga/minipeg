@@ -158,7 +158,7 @@ class TokenState(ParseState):
 
     def match(self, predicate):
         # matches a token to a specification
-        return predicate(self.input[self.cursor])
+        return self.cursor<len(self.input) and predicate(self.input[self.cursor])
  
     def advance(self, n, node=False):
         # moves cursor forward & (optionally) adds a node to the ast
@@ -235,7 +235,7 @@ def asparser(x):
     
 class MatchToken(Parser):
     def __init__(self, predicate, save=True):
-        self.pred = predicate
+        self.predicate = predicate
         self.name = 'token'
         self.save = save
     
@@ -243,7 +243,7 @@ class MatchToken(Parser):
         if state.match(self.predicate):
             p = state.position()
             state.advance(1,
-                self.save and Leaf(self, self.token, [p, p+1]))
+                self.save and Leaf(self, state.input[p], [p, p+1]))
             # need to save the matched token
             return state
         else:
@@ -343,11 +343,13 @@ class Repeat(Parser):
     def __init__(self, p, n):
         self.parser = p
         self.n = n
+        self.name = 'seq' # it is just a simple sequence
         
     def __call__(self, state, backtrack=False):
         # do the minimum number of parses with backtracking
         if not backtrack:
             oldstate = state.clone()
+        astlen = len(state.ast)
         for i in range(self.n):
             if not self.parser(state, True):
                 if not backtrack:
@@ -357,6 +359,7 @@ class Repeat(Parser):
         # own backtrack
         while self.parser(state):
             pass
+        state.group(self, astlen)
         return state
     
 class Ref(Parser):
@@ -395,13 +398,11 @@ class Grammar(Parser):
     
     def __getattr__(self, attr):
         # create a forward reference to the rule
-        print('get  ', attr)
         object.__setattr__(self, attr, Ref())
         return getattr(self, attr)
     
     def __setattr__(self, attr, value):
         # create or fill in an attribute
-        print('set', attr)
         if attr in self.__dict__:
             g = getattr(self, attr)
             if type(g) is Ref:

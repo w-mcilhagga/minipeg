@@ -66,9 +66,13 @@ from minipeg import TextState
 state = g(TextState('  (1+345^2) / 3*7-4'))
 ```
 
-A `TextState` object takes a string input, keeps track of the state of the parse, and stores the ast. The grammar object `g` will use the first defined rule `g.expr` by default when parsing, but you can explicitly call any other rule on a state object. 
+A `TextState` object takes a string input, keeps track of the state of the parse, and stores the ast. 
+The grammar object `g` will use the first defined rule `g.expr` by default when parsing, but you can 
+explicitly call any other rule on a state object. 
 
-If the parse succeeds, the resultant state object has an `ast` attribute which is a list containing the parse tree as its first element. If the parse fails, the return value is either `False`, or an exception is thrown ( when error parsers have been defined).
+If the parse succeeds, the resultant state object has an `ast` attribute which is a list containing 
+the parse tree as its first element. If the parse fails, the return value is either `False`, or 
+an exception is thrown ( when error parsers have been defined).
 
 The ast can be inspected by calling `state.ast[0].dump()`. In this case, the dump looks like this:
 

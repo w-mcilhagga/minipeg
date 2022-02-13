@@ -1,0 +1,77 @@
+# -*- coding: utf-8 -*-
+"""
+markdown parsing
+"""
+
+"""
+Block level elements:
+    
+* heading
+* fenced block ```name ... ```
+* section :::name ... ::: (extension)
+* blockquote
+* list element
+* paragraph
+* html
+* display equation
+"""
+
+from minipeg import Grammar, MatchToken, TokenState
+import re
+
+# going to assume that the input has been broken into lines/tokens but
+# not yet identified
+
+def _(str):
+    # a predicate for token matching
+    return MatchToken(lambda tok: tok.value.startswith(str))
+
+def _not(str):
+    # a predicate for token matching
+    return MatchToken(lambda tok: not tok.value.startswith(str))
+
+
+def _re(str):
+    # a predicate for token matching
+    pattern = re.compile(str)
+    return MatchToken(lambda tok: pattern.match(tok.value))
+
+def _notre(str):
+    # a predicate for token matching
+    pattern = re.compile(str)
+    return MatchToken(lambda tok: not pattern.match(tok.value))
+
+
+
+def nbpred():
+    pattern = re.compile(' *$')
+    def pred(tok):
+        return not pattern.match(tok.value)
+    return pattern
+
+b = Grammar() # block level elements
+
+b.block = (b.heading | b.fence | b.section | b.blockquote | 
+           b.listelem | b.paragraph | b.blank)
+# later, add b.displayeq, b.blockhtml
+
+b.heading = b.h1 | b.h2 | b.h3
+b.h1 = _('# ')
+b.h2 = _('## ')
+b.h3 = _('### ')
+
+b.fence = _('```') & _not('```')*0 & _('```') 
+
+# section is an extension
+b.section = _(':::') & _not(':::')*0 & _(':::')
+
+b.blockquote = _('>')*0
+
+b.listelem = b.ulistelem | b.olistelem
+b.ulistelem = startswithre(r'[0-9]\. ') & b.nonblank*0
+b.olistitem = startswithre(r'[-*] ') & b.nonblank*0
+
+b.paragraph = b.nonblank*1
+b.nonblank = MatchToken(nbpred)
+
+b.blank = startswithre(r' *$')*1
